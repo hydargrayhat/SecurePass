@@ -1,0 +1,223 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>SecurePass - Password Strength Checker</title>
+  <link rel="icon" href="icon/favicon.ico" type="image/x-icon"> <!-- Web Icon -->
+  <style>
+    /* Base Styles */
+    body {
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      height: 100vh;
+      margin: 0;
+      font-family: Arial, sans-serif;
+      background-color: #ffffff;
+      color: #333;
+      background-image: url('bg/background.jpg'); /* Set your image URL here */
+      background-size: cover;
+      background-position: center;
+    }
+
+    .container {
+      max-width: 400px;
+      width: 200%;
+      padding: 20px;
+      border-radius: 10px;
+      box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+      background-color: rgba(255, 255, 255, 0.7); /* Semi-transparent background */
+    }
+
+    h1 {
+      text-align: center;
+      padding: 12px;
+      color: #fff;
+      background: linear-gradient(to right, #9f9f9f 0, #fff 10%, #868686 20%);
+      background-size: 200%;
+      background-clip: text;
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      animation: shine 3s infinite linear;
+      font-weight: 600;
+      font-size: 24px;
+      white-space: nowrap;
+      font-family: "Poppins", sans-serif;
+      margin: 0 0 20px 0;
+    }
+
+    @keyframes shine {
+      0% { background-position: 0; }
+      60% { background-position: 180px; }
+      100% { background-position: 180px; }
+    }
+
+    input[type="password"] {
+      width: 100%;
+      padding: 10px;
+      margin-top: 10px;
+      margin-bottom: 20px;
+      font-size: 1em;
+      border: 1px solid #ccc;
+      border-radius: 5px;
+      box-sizing: border-box;
+      background-color: rgba(255, 255, 255, 0.8); /* Transparent input background */
+    }
+
+    /* Updated outline color */
+    input[type="password"]:focus {
+      outline: 2px solid #009dff; /* Outline color updated */
+      border-color: #009dff; /* Border color when focused */
+    }
+
+    button {
+      position: relative;
+      display: block;
+      width: 100%;
+      padding: 15px 0;
+      font-size: 18px;
+      letter-spacing: 1px;
+      color: #009dff;
+      background: transparent;
+      cursor: pointer;
+      transition: ease-out 0.5s;
+      border: 2px solid #009dff;
+      border-radius: 10px;
+      box-shadow: inset 0 0 0 0 #009dff;
+    }
+
+    button:hover {
+      color: white;
+      box-shadow: inset 0 -100px 0 0 #009dff;
+    }
+
+    button:active {
+      transform: scale(0.9);
+    }
+
+    .progress-bar {
+      width: 100%;
+      height: 10px;
+      background-color: #ddd;
+      border-radius: 5px;
+      margin-top: 10px;
+      overflow: hidden;
+    }
+
+    .progress {
+      height: 100%;
+      width: 0%;
+      background-color: #ff4d4d;
+      transition: width 0.3s;
+      border-radius: 5px;
+    }
+
+    .result {
+      margin-top: 20px;
+      font-size: 0.9em;
+    }
+
+    .details {
+      font-size: 1em;
+      margin-top: 20px;
+      text-align: center;
+      color: #555;
+    }
+  </style>
+</head>
+<body>
+
+  <div class="container">
+    <h1>SecurePass</h1>
+    <p class="details">
+      Welcome to SecurePass, a simple tool to check your password strength. Enter your password, and we'll tell you how secure it is based on its length, character variety, and estimated cracking time. Protect your accounts by using stronger passwords!
+    </p>
+    <input type="password" id="passwordInput" placeholder="Enter your password">
+    <button onclick="checkPasswordStrength()">Check Password Strength</button>
+    <div class="progress-bar">
+      <div class="progress" id="progressBar"></div>
+    </div>
+    <div class="result" id="result"></div>
+  </div>
+
+  <script>
+    function checkPasswordStrength() {
+      const password = document.getElementById('passwordInput').value;
+      const result = document.getElementById('result');
+      const progressBar = document.getElementById('progressBar');
+
+      if (password.length === 0) {
+        result.innerHTML = "Please enter a password.";
+        progressBar.style.width = "0%";
+        progressBar.style.backgroundColor = "#ff4d4d";
+        return;
+      }
+
+      // Password Strength Calculation
+      let strength = 0;
+      let charsetSize = 0;
+
+      if (password.length >= 6) strength++;
+      if (password.length >= 10) strength++;
+      if (/[A-Z]/.test(password)) {
+        strength++;
+        charsetSize += 26; // Uppercase letters
+      }
+      if (/[a-z]/.test(password)) {
+        strength++;
+        charsetSize += 26; // Lowercase letters
+      }
+      if (/[0-9]/.test(password)) {
+        strength++;
+        charsetSize += 10; // Digits
+      }
+      if (/[^A-Za-z0-9]/.test(password)) {
+        strength++;
+        charsetSize += 32; // Symbols
+      }
+
+      // Calculate Crack Time (in seconds) with a high-speed assumption of 100 billion guesses per second
+      const guessesPerSecond = 100e9;  // 100 billion guesses per second
+      const totalCombinations = Math.pow(charsetSize, password.length);
+      const crackTimeSeconds = totalCombinations / guessesPerSecond;
+
+      let crackTimeText;
+      if (crackTimeSeconds < 1) crackTimeText = "Instantly crackable";
+      else if (crackTimeSeconds < 60) crackTimeText = crackTimeSeconds.toFixed(2) + " seconds";
+      else if (crackTimeSeconds < 3600) crackTimeText = (crackTimeSeconds / 60).toFixed(2) + " minutes";
+      else if (crackTimeSeconds < 86400) crackTimeText = (crackTimeSeconds / 3600).toFixed(2) + " hours";
+      else if (crackTimeSeconds < 31536000) crackTimeText = (crackTimeSeconds / 86400).toFixed(2) + " days";
+      else crackTimeText = (crackTimeSeconds / 31536000).toFixed(2) + " years";
+
+      // Output Strength and Crack Time
+      let strengthText = '';
+      let color = '';
+      let progressPercent = strength * 20;
+
+      if (strength <= 2) {
+        strengthText = 'Weak';
+        color = '#ff4d4d'; // Red
+      } else if (strength == 3) {
+        strengthText = 'Moderate';
+        color = '#ffa500'; // Orange
+      } else if (strength == 4) {
+        strengthText = 'Strong';
+        color = '#4CAF50'; // Green
+      } else {
+        strengthText = 'Very Strong';
+        color = '#2E8B57'; // Dark Green
+      }
+
+      progressBar.style.width = progressPercent + '%';
+      progressBar.style.backgroundColor = color;
+
+      result.innerHTML = `
+        <p><strong>Strength:</strong> ${strengthText}</p>
+        <p><strong>Estimated Crack Time:</strong> ${crackTimeText}</p>
+      `;
+    }
+  </script>
+
+</body>
+</html>
